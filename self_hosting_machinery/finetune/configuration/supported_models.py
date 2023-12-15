@@ -40,6 +40,40 @@ _starcoder_base = {
     ],
     "force_enable_checkpointing": False
 }
+_codellama_base = {
+    "lora_target_modules_mapping": {
+        "qkv": ["self_attn.q_proj", "self_attn.k_proj", "self_attn.v_proj"],
+        "out": ["self_attn.o_proj"],
+        "backproj": ["self_attn.o_proj"],
+        "mlp": ["mlp.gate_proj", "mlp.up_proj", "mlp.down_proj"],
+    },
+    "freeze_exceptions_mapping": {
+        "wte": ["embed_tokens"],
+        "lm_head": ["lm_head"],
+        "lora": ["lora"]
+    },
+    "tokenizer": {
+        "eot_idx": 32010,
+        "padding_idx": 2,  # there is no padding token, so instead using `eos` token as in `gpt2`
+        "fim_prefix": 32007,
+        "fim_middle": 32009,
+        "fim_suffix": 32008,
+        "escape": 0,  # using <unk> token
+        "bos_idx": 1
+    },
+    "train_ds_pipeline": {
+        **_fim_train_ds_pipeline,
+        "ds_name": "CodeLLamaFIMDataset"
+    },
+    "test_ds_pipeline": {
+        **_fim_test_ds_pipeline,
+        "ds_name": "CodeLLamaFIMDataset"
+    },
+    "train_model_modifiers": [
+        "flash_sa.apply_flash_mha_to_codellama_model"
+    ],
+    "force_enable_checkpointing": True   
+}
 
 _deepseek_base = {
     "lora_target_modules_mapping": {
@@ -103,40 +137,9 @@ config = {
         "force_enable_checkpointing": True
     },
 
-    "codellama/7b": {
-        "lora_target_modules_mapping": {
-            "qkv": ["self_attn.q_proj", "self_attn.k_proj", "self_attn.v_proj"],
-            "out": ["self_attn.o_proj"],
-            "backproj": ["self_attn.o_proj"],
-            "mlp": ["mlp.gate_proj", "mlp.up_proj", "mlp.down_proj"],
-        },
-        "freeze_exceptions_mapping": {
-            "wte": ["embed_tokens"],
-            "lm_head": ["lm_head"],
-            "lora": ["lora"]
-        },
-        "tokenizer": {
-            "eot_idx": 32010,
-            "padding_idx": 2,  # there is no padding token, so instead using `eos` token as in `gpt2`
-            "fim_prefix": 32007,
-            "fim_middle": 32009,
-            "fim_suffix": 32008,
-            "escape": 0,  # using <unk> token
-            "bos_idx": 1
-        },
-        "train_ds_pipeline": {
-            **_fim_train_ds_pipeline,
-            "ds_name": "CodeLLamaFIMDataset"
-        },
-        "test_ds_pipeline": {
-            **_fim_test_ds_pipeline,
-            "ds_name": "CodeLLamaFIMDataset"
-        },
-        "train_model_modifiers": [
-            "flash_sa.apply_flash_mha_to_codellama_model"
-        ],
-        "force_enable_checkpointing": True
-    },
+    "codellama/7b": _codellama_base,
+
+    "codellama/34b": _codellama_base,
 
     "deepseek-coder/1.3b/base": _deepseek_base,
 
